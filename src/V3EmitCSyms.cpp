@@ -1160,17 +1160,18 @@ void EmitCSyms::emitVarTables() {
     size_t i = 0;
     size_t nFile = 0;
     while (i < tables.size()) {
+        std::string funcName = symClassName() + "__tables";
         if (!allInSingleFile) {
-            const std::string funcName = symClassName() + "__tables__" + std::to_string(nFile++);
-            openNewOutputSourceFile(funcName, true, true, "Variable/scope tables");
-            puts("\n");
-
-            // Includes
-            puts("#include \"" + EmitCUtil::pchClassName() + ".h\"\n");
-            puts("\n");
+            funcName += "__" + std::to_string(nFile++);
         }
 
-        puts("\n// VPI VARIABLE/SCOPE TABLES\n");
+        openNewOutputSourceFile(funcName, true, true, "Variable/scope tables");
+
+        // Includes
+        puts("\n");
+        puts("#include \"" + EmitCUtil::pchClassName() + ".h\"\n");
+        puts("\n");
+        puts("// VPI VARIABLE/SCOPE TABLES\n");
         // offsetof on the (non-standard-layout) generated module/Syms classes is well
         // defined on all supported compilers but warns; suppress just here.
         puts("#if defined(__GNUC__)\n");
@@ -1196,9 +1197,7 @@ void EmitCSyms::emitVarTables() {
         puts("# pragma GCC diagnostic pop\n");
         puts("#endif\n");
 
-        if (!allInSingleFile) closeOutputFile();
-        UASSERT(!allInSingleFile || i == tables.size(),
-                "expected single table file, but wrote " << i << " of " << tables.size() << " tables");
+        closeOutputFile();
     }
 }
 
@@ -1602,7 +1601,6 @@ void EmitCSyms::emitSymImp(const AstNetlist* netlistp) {
 
     openNewOutputSourceFile(symClassName(), true, true, "Symbol table implementation internals");
     emitSymImpPreamble();
-    emitVarTables();
 
     // Constructor
     const std::string ctorArgs
@@ -1693,6 +1691,8 @@ void EmitCSyms::emitSymImp(const AstNetlist* netlistp) {
     }
 
     closeOutputFile();
+
+    emitVarTables();
 }
 
 //######################################################################
