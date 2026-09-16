@@ -1131,15 +1131,18 @@ void EmitCSyms::emitVarTables() {
     struct TableInfo final {
         std::string typeName;
         std::string tableName;
-        const std::vector<std::string> &rows;
+        const std::vector<std::string>& rows;
 
-        TableInfo(std::string typeName, std::string tableName, const std::vector<std::string> &rows)
-          : typeName(std::move(typeName)), tableName(std::move(tableName)), rows(rows) {}
+        TableInfo(std::string typeName, std::string tableName,
+                  const std::vector<std::string>& rows)
+            : typeName(std::move(typeName))
+            , tableName(std::move(tableName))
+            , rows(rows) {}
     };
 
     std::vector<TableInfo> tables;
 
-    for (const auto &kv : m_varTables) {
+    for (const auto& kv : m_varTables) {
         tables.emplace_back("VlVarTableEntry", kv.first, kv.second);
     }
     if (!m_scopeTableRows.empty()) {
@@ -1152,18 +1155,14 @@ void EmitCSyms::emitVarTables() {
     constexpr static size_t maxCost = 10000;
 
     size_t totalCost = 0;
-    for (const auto &table : tables) {
-        totalCost += table.rows.size();
-    }
+    for (const auto& table : tables) { totalCost += table.rows.size(); }
     const bool allInSingleFile = totalCost <= maxCost;
 
     size_t i = 0;
     size_t nFile = 0;
     while (i < tables.size()) {
         std::string funcName = symClassName() + "__tables";
-        if (!allInSingleFile) {
-            funcName += "__" + std::to_string(nFile++);
-        }
+        if (!allInSingleFile) { funcName += "__" + std::to_string(nFile++); }
 
         openNewOutputSourceFile(funcName, true, true, "Variable/scope tables");
 
@@ -1181,9 +1180,9 @@ void EmitCSyms::emitVarTables() {
 
         totalCost = 0;
         for (; i < tables.size() && totalCost <= maxCost; i++) {
-            auto &table = tables[i];
+            auto& table = tables[i];
             puts("const " + table.typeName + " " + table.tableName + "[] = {\n");
-            for (const std::string &row : table.rows) {
+            for (const std::string& row : table.rows) {
                 puts("    ");
                 puts(row);
                 puts(",\n");
